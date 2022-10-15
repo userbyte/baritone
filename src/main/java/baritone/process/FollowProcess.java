@@ -55,11 +55,14 @@ public final class FollowProcess extends BaritoneProcessHelper implements IFollo
 
     private Goal towards(Entity following) {
         BlockPos pos;
-        if (Baritone.settings().followOffsetDistance.value == 0) {
+        if (Baritone.settings().followOffsetDistance.value == 0 || into) {
             pos = following.blockPosition();
         } else {
             GoalXZ g = GoalXZ.fromDirection(following.position(), Baritone.settings().followOffsetDirection.value, Baritone.settings().followOffsetDistance.value);
             pos = new BlockPos(g.getX(), following.position().y, g.getZ());
+        }
+        if (into) {
+            return new GoalBlock(pos);
         }
         return new GoalNear(pos, Baritone.settings().followRadius.value);
     }
@@ -109,6 +112,13 @@ public final class FollowProcess extends BaritoneProcessHelper implements IFollo
     @Override
     public void follow(Predicate<Entity> filter) {
         this.filter = filter;
+        this.into = false;
+    }
+
+    @Override
+    public void pickup(Predicate<ItemStack> filter) {
+        this.filter = e -> e instanceof EntityItem && filter.test(((EntityItem) e).getItem());
+        this.into = true;
     }
 
     @Override
